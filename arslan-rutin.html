@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arslan — Günlük Rutin</title>
+<style>
+:root { --bg:#0d1117; --bg2:#161b22; --bg3:#21262d; --border:#30363d; --text:#e6edf3; --sub:#8b949e; --accent:#3ecf6e; }
+body.light { --bg:#f6f8fa; --bg2:#ffffff; --bg3:#eaeef2; --border:#d0d7de; --text:#1f2328; --sub:#656d76; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; padding-bottom:80px; transition:background .3s,color .3s; }
+
+/* HEADER */
+.header { background:var(--bg2); border-bottom:1px solid var(--border); padding:16px 16px 0; position:sticky; top:0; z-index:100; }
+.header-top { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.h-title { font-size:18px; font-weight:700; flex:1; }
+.h-sub { font-size:12px; color:var(--sub); }
+.h-right { display:flex; align-items:center; gap:8px; }
+.streak-pill { background:rgba(240,192,64,.12); border:1px solid rgba(240,192,64,.25); border-radius:20px; padding:4px 10px; font-size:12px; font-weight:700; color:#f0c040; }
+.theme-btn { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:16px; color:var(--text); }
+
+
+
+/* CONTENT */
+.content { max-width:480px; margin:0 auto; padding:16px; }
+
+/* PROGRESS CARD */
+.prog-card { background:var(--bg2); border-radius:14px; border:1px solid var(--border); padding:14px 16px; margin-bottom:14px; }
+.prog-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.prog-label { font-size:13px; font-weight:600; }
+.prog-pct { font-size:22px; font-weight:800; color:#3ecf6e; }
+.prog-bar { height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:3px; background:#3ecf6e; transition:width .6s cubic-bezier(.4,0,.2,1); }
+.prog-meta { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--sub); }
+
+/* PRAYER STRIP */
+.prayer-strip { background:var(--bg2); border-radius:14px; border:1px solid var(--border); padding:10px 14px; margin-bottom:14px; display:flex; gap:0; overflow-x:auto; scrollbar-width:none; }
+.prayer-strip::-webkit-scrollbar { display:none; }
+.pr-item { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:2px; padding:0 12px; border-right:1px solid var(--border); }
+.pr-item:last-child { border-right:none; }
+.pr-name { font-size:9px; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:.3px; }
+.pr-time { font-size:13px; font-weight:700; color:var(--text); }
+.pr-item.next .pr-name { color:#f0c040; }
+.pr-item.next .pr-time { color:#f0c040; }
+.pr-item.passed .pr-time { color:var(--sub); }
+
+/* SECTION LABEL */
+.sec-label { font-size:11px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.5px; margin:16px 0 8px; padding-left:4px; }
+
+/* NOW INDICATOR */
+.now-ind { display:flex; align-items:center; gap:8px; margin:4px 0 8px; }
+.now-dot { width:8px; height:8px; border-radius:50%; background:#3ecf6e; animation:blink 1.5s ease-in-out infinite; flex-shrink:0; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+.now-txt { font-size:11px; color:#3ecf6e; font-weight:600; }
+
+/* TASK CARD */
+.task-card { background:var(--bg2); border-radius:14px; border:1px solid var(--border); margin-bottom:8px; overflow:hidden; }
+.task-card.current { border-color:rgba(62,207,110,.35); }
+.task-card.prayer-card { border-color:rgba(240,192,64,.25); background:rgba(240,192,64,.04); }
+
+.task-row { display:flex; align-items:center; gap:12px; padding:12px 14px; cursor:pointer; transition:background .15s; }
+.task-row:active { background:var(--bg3); }
+.task-card.done .task-row { opacity:.5; }
+.task-card.prayer-card .task-row { cursor:default; }
+
+.task-time { font-size:11px; font-weight:600; color:var(--sub); width:38px; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.task-card.current .task-time { color:#3ecf6e; }
+.task-card.prayer-card .task-time { color:#f0c040; }
+.task-card.prayer-card.passed .task-time { color:var(--sub); }
+
+.task-icon { font-size:18px; flex-shrink:0; }
+.task-body { flex:1; min-width:0; }
+.task-title { font-size:14px; font-weight:600; color:var(--text); line-height:1.3; }
+.task-card.done .task-title { text-decoration:line-through; color:var(--sub); }
+.task-card.prayer-card .task-title { color:#f0c040; font-size:13px; }
+.task-card.prayer-card.passed .task-title { color:var(--sub); }
+.task-sub { font-size:12px; color:var(--sub); margin-top:2px; line-height:1.5; }
+.task-tags { display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+.ttag { font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; border:1px solid; }
+.ttag-g { color:#3ecf6e; border-color:rgba(62,207,110,.25); background:rgba(62,207,110,.08); }
+.ttag-b { color:#4f8ef7; border-color:rgba(79,142,247,.25); background:rgba(79,142,247,.08); }
+.ttag-o { color:#f7b36e; border-color:rgba(247,179,110,.25); background:rgba(247,179,110,.08); }
+.ttag-r { color:#f76e6e; border-color:rgba(247,110,110,.25); background:rgba(247,110,110,.08); }
+
+.checkbox { width:24px; height:24px; border-radius:6px; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; color:transparent; transition:all .2s; }
+.task-card.done .checkbox { background:#3ecf6e; border-color:#3ecf6e; color:#fff; }
+@keyframes pop { 0%{transform:scale(.5)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+.checkbox.popping { animation:pop .25s ease-out; }
+
+/* STATS */
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.stat-card { background:var(--bg2); border-radius:14px; border:1px solid var(--border); padding:14px; text-align:center; }
+.stat-val { font-size:28px; font-weight:800; }
+.stat-lbl { font-size:11px; color:var(--sub); margin-top:4px; }
+.week-card { background:var(--bg2); border-radius:14px; border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+.week-head { font-size:13px; font-weight:700; margin-bottom:12px; }
+.week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.wd { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.wd-l { font-size:9px; color:var(--sub); }
+.wd-b { width:100%; aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; background:var(--bg3); color:var(--sub); border:1px solid transparent; }
+.wd-b.done { background:#1a3028; color:#3ecf6e; border-color:rgba(62,207,110,.3); }
+.wd-b.today { border-color:#3ecf6e; color:#3ecf6e; }
+
+.pray-stat-card { background:var(--bg2); border-radius:14px; border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+
+/* PROGRAM */
+.prog-section { margin-bottom:20px; }
+.prog-sec-h { font-size:11px; font-weight:700; color:#3ecf6e; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+.prog-item { background:var(--bg2); border-radius:12px; border:1px solid var(--border); padding:12px 14px; margin-bottom:8px; }
+.prog-item-h { font-size:13px; font-weight:600; margin-bottom:4px; }
+.prog-item-b { font-size:12px; color:var(--sub); line-height:1.6; }
+
+/* BOTTOM NAV */
+.bnav { position:fixed; bottom:0; left:0; right:0; background:rgba(13,17,23,.95); backdrop-filter:blur(12px); border-top:1px solid var(--border); display:flex; padding-bottom:env(safe-area-inset-bottom,4px); }
+body.light .bnav { background:rgba(246,248,250,.95); }
+.bnav-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 4px 8px; background:none; border:none; cursor:pointer; color:var(--sub); font-family:inherit; font-size:10px; font-weight:500; transition:color .15s; }
+.bnav-btn.active { color:#3ecf6e; }
+.bnav-icon { font-size:20px; line-height:1; }
+
+.page { display:none; }
+.page.active { display:block; }
+
+/* TOAST */
+.toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(8px); background:#3ecf6e; color:#000; font-size:12px; font-weight:700; padding:8px 18px; border-radius:20px; z-index:300; opacity:0; pointer-events:none; white-space:nowrap; transition:opacity .25s, transform .25s; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="max-width:480px;margin:0 auto">
+    <div class="header-top">
+      <span style="font-size:26px">👦🏻</span>
+      <div style="flex:1">
+        <div class="h-title">Arslan — Günlük Rutin</div>
+        <div class="h-sub" id="hSub">—</div>
+      </div>
+      <div class="h-right">
+        <div class="streak-pill">🔥 <span id="streakNum">0</span></div>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active" id="page-bugun"></div>
+  <div class="page" id="page-stats"></div>
+  <div class="page" id="page-program"></div>
+</div>
+
+<nav class="bnav">
+  <button class="bnav-btn active" onclick="switchTab('bugun',this)"><span class="bnav-icon">📋</span>Bugün</button>
+  <button class="bnav-btn" onclick="switchTab('stats',this)"><span class="bnav-icon">📊</span>İstatistik</button>
+  <button class="bnav-btn" onclick="switchTab('program',this)"><span class="bnav-icon">📚</span>Program</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS_TR  = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const MONTHS_TR= ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const DAYS_S   = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+const ANT      = [1,3,5];
+const TEMIZLIK = {1:'pilsos + öýi yığnamak',2:'daşaryny süpürmek + towuga seretmek',3:'kakamyň jaýyny + öýleri yığnamak',4:'pilsos + öýleri yığnamak',5:'daşaryny süpürmek + towuga seretmek',6:'kakamyň jaýyny + öýi yığnamak',0:'üýşip bir ýeri yığnamak'};
+
+const ld=(k,fb)=>{try{return JSON.parse(localStorage.getItem(k))??fb;}catch(e){return fb;}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+const dk=d=>d.toISOString().split('T')[0];
+const toMins=t=>{if(!t)return 9999;const[h,m]=t.split(':').map(Number);return h*60+(m||0);};
+const nowMins=()=>{const n=new Date();return n.getHours()*60+n.getMinutes();};
+
+let checked  = ld('ar3_chk',{});
+let streak   = ld('ar3_str',{cur:0,best:0,last:''});
+let weekDone = ld('ar3_wk',{});
+let prayers  = null;
+let todayKey = dk(new Date());
+let isLight  = ld('ar3_theme',false);
+
+// Theme
+function applyTheme(){document.body.classList.toggle('light',isLight);document.getElementById('themeBtn').textContent=isLight?'☀️':'🌙';}
+function toggleTheme(){isLight=!isLight;sv('ar3_theme',isLight);applyTheme();}
+applyTheme();
+
+// Header
+function renderHeader(){
+  const now=new Date(),dow=now.getDay();
+  const type=dow===0?'Gelişim Günü':ANT.includes(dow)?'Antrenman Günü':'Normal Gün';
+  document.getElementById('hSub').textContent=DAYS_TR[dow]+' · '+now.getDate()+' '+MONTHS_TR[now.getMonth()]+' · '+type;
+  document.getElementById('streakNum').textContent=streak.cur+' gün';
+}
+
+// Prayers
+async function fetchPrayers(){
+  const n=new Date();
+  try{
+    const r=await fetch(`https://api.aladhan.com/v1/timings/${n.getDate()}-${n.getMonth()+1}-${n.getFullYear()}?latitude=37.9601&longitude=58.3261&method=3&school=1`);
+    const data=await r.json();
+    if(data.code===200){const t=data.data.timings;prayers={fajr:t.Fajr,sunrise:t.Sunrise,dhuhr:t.Dhuhr,asr:t.Asr,maghrib:t.Maghrib,isha:t.Isha};}
+  }catch(e){
+    // API başarısız — prayers null kalır, bloklar namaz olmadan gösterilir
+  }
+  renderBugun(); // API ister başarılı ister başarısız, render et
+}
+
+function prayerStripHTML(){
+  if(!prayers) return `
+    <div style="display:flex;align-items:center;gap:8px;padding:2px 4px">
+      <span style="font-size:14px">🕌</span>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.3px">Ahal Namaz Vakitleri</div>
+        <div style="font-size:12px;color:var(--sub)">Yükleniyor…</div>
+      </div>
+    </div>`;
+  const list=[{n:'Sabah',t:prayers.fajr},{n:'Güneş',t:prayers.sunrise},{n:'Öğle',t:prayers.dhuhr},{n:'İkindi',t:prayers.asr},{n:'Akşam',t:prayers.maghrib},{n:'Yatsı',t:prayers.isha}];
+  const now=nowMins(),nextIdx=list.findIndex(p=>toMins(p.t)>now);
+  return list.map((p,i)=>{
+    let cls=''; if(i===nextIdx)cls='next'; else if(toMins(p.t)<=now)cls='passed';
+    return `<div class="pr-item ${cls}"><div class="pr-name">${p.n}</div><div class="pr-time">${p.t}</div></div>`;
+  }).join('');
+}
+
+// Blocks
+function buildBlocks(dow){
+  const isAnt=ANT.includes(dow),isPaz=dow===0,tmz=TEMIZLIK[dow]||'';
+  const p=prayers||{};
+  const blocks=[];
+  const a=(id,time,icon,title,sub,tags,prayer)=>blocks.push({id,time,icon,title,sub:sub||'',tags:tags||[],prayer:!!prayer});
+
+  if(p.fajr)    a('fajr',   p.fajr,  '🌙','Sabah Namazı','','','prayer');
+  a('wake',    '07:00','⏰','Kalkış',           'Diş fırçala · yüzü yıka');
+  a('skin_m',  '07:05','🧴','Sabah Cilt Bakım', 'Niacinamide → Nemlendirici → SPF50',['ttag-g']);
+  if(isAnt){
+    a('mini',  '07:10','⚡','Antrenman Öğünü',  'Muz + süt 200ml → 200 kcal',['ttag-o']);
+    a('ant',   '07:30','💪','Full Body Antrenman','8 hareket · 90 dk',['ttag-r']);
+    a('shower','09:00','🚿','Duş + Toparlan',   '');
+  }
+  a('bfast',   '09:15','🥣','Kahvaltı',          'Yulaf · 3 yumurta · bal → 700 kcal',['ttag-o']);
+  if(!isPaz){
+    a('eng',   '09:45','🇬🇧','İngilizce — 1 Saat','Anki 20dk · Shadowing 20dk · Claude 20dk',['ttag-b']);
+    a('ai',    '10:45','🤖','AI / Python — 1 Saat','Google Colab · Prompt · Proje',['ttag-b']);
+  } else {
+    a('review','09:45','📖','Haftalık Review',   'Bu hafta ne öğrendim? Hedefler tuttu mu?');
+    a('lucy',  '10:30','🎬','English with Lucy', '1 video · Anki\'ye ekle',['ttag-b']);
+    a('ankir', '11:15','🔁','Anki Tekrar',       'Haftanın en zor 10 kelimesi',['ttag-b']);
+  }
+  if(p.dhuhr)   a('dhuhr',  p.dhuhr, '☀️','Öğle Namazı','','','prayer');
+  a('lunch',   '12:30','🍽️','Öğle Yemeği',      'Pilav · et/tavuk · sebze · yoğurt → 700 kcal',['ttag-o']);
+  if(!isPaz){
+    a('clean', '13:00','🧹','Temizlik Görevi',   tmz+' · ~50 dk',['ttag-g']);
+    a('go',    '14:35','🎒','Okula Çıkış',       '5 dk yol');
+    a('school','14:40','🏫','Okul',              '14:40 – 18:00');
+    a('snack', '15:30','🥪','Ara Öğün',          'Ekmek · peynir · yumurta · badem → 550 kcal',['ttag-o']);
+  } else {
+    a('family','13:00','👨‍👩‍👦','Aile Vakti',  'Birlikte yemek · dinlen · konuş');
+    a('cleanp','15:00','🧹','Temizlik Görevi',   tmz+' · ~50 dk',['ttag-g']);
+  }
+  if(p.asr)     a('asr',    p.asr,   '🌤️','İkindi Namazı','','','prayer');
+  a('home',    '18:10','🏠','Eve Geliş',         'Çantayı bırak · dinlen');
+  a('dinner',  '18:30','🥩','Akşam Yemeği',      'Et/tavuk/balık · pilav · yoğurt → 600 kcal',['ttag-o']);
+  if(p.maghrib) a('maghrib',p.maghrib,'🌇','Akşam Namazı','','','prayer');
+  a('skin_e',  '19:00','🌙','Akşam Cilt Bakım',  'Azelaic asit → Nemlendirici',['ttag-g']);
+  if(p.isha)    a('isha',   p.isha,  '⭐','Yatsı Namazı','','','prayer');
+  a('night',   '21:30','🥛','Gece Öğünü',        'Lor peyniri 100g + süt 200ml → 150 kcal',['ttag-o']);
+  a('wind',    '21:45','📵','Ekran Kapat',        'Zihin sakinleşsin');
+  a('sleep',   '22:00','😴','Uyku',              '9 saat',['ttag-b']);
+
+  blocks.sort((a,b)=>toMins(a.time)-toMins(b.time));
+  return blocks;
+}
+
+const SECTIONS={fajr:'Sabah',wake:'Sabah',skin_m:'Sabah',mini:'Sabah',ant:'Sabah',shower:'Sabah',bfast:'Sabah',eng:'Öğle Öncesi',ai:'Öğle Öncesi',review:'Gelişim Günü',lucy:'Gelişim Günü',ankir:'Gelişim Günü',dhuhr:'Öğle',lunch:'Öğle',clean:'Öğleden Sonra',go:'Okul',school:'Okul',snack:'Okul',family:'Öğleden Sonra',cleanp:'Öğleden Sonra',asr:'Akşam',home:'Akşam',dinner:'Akşam',maghrib:'Akşam',skin_e:'Gece',isha:'Gece',night:'Gece',wind:'Gece',sleep:'Gece'};
+
+function renderBugun(){
+  if(!checked[todayKey]) checked[todayKey]={};
+  const now=new Date(),dow=now.getDay();
+  const blocks=buildBlocks(dow);
+  const nowM=nowMins();
+  let curIdx=-1;
+  for(let i=blocks.length-1;i>=0;i--){if(!blocks[i].prayer&&toMins(blocks[i].time)<=nowM){curIdx=i;break;}}
+
+  const tasks=blocks.filter(b=>!b.prayer);
+  const done=tasks.filter(b=>checked[todayKey][b.id]).length;
+  const pct=tasks.length?Math.round(done/tasks.length*100):0;
+
+  let html=`
+  <div class="prog-card">
+    <div class="prog-top"><span class="prog-label">Günlük İlerleme</span><span class="prog-pct">${pct}%</span></div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="prog-meta"><span>${done} / ${tasks.length} görev tamamlandı</span><span>${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}</span></div>
+  </div>
+  <div class="prayer-strip">${prayerStripHTML()}</div>`;
+
+  let lastSec='';
+  blocks.forEach((b,i)=>{
+    const sec=SECTIONS[b.id]||'';
+    if(sec&&sec!==lastSec){html+=`<div class="sec-label">${sec}</div>`;lastSec=sec;}
+    if(i===curIdx) html+=`<div class="now-ind"><div class="now-dot"></div><div class="now-txt">Şu an bu blokta</div></div>`;
+
+    const isDone=!b.prayer&&checked[todayKey][b.id];
+    const isCur=i===curIdx&&!b.prayer;
+    const isPast=toMins(b.time)<nowM;
+    let cls='task-card';
+    if(b.prayer) cls+=' prayer-card'+(isPast?' passed':'');
+    else if(isDone) cls+=' done';
+    else if(isCur) cls+=' current';
+
+    const tagsHtml=b.tags.map(t=>`<span class="ttag ${t}">${tagLabel(t)}</span>`).join('');
+    const chk=!b.prayer?`<div class="checkbox" id="chk-${b.id}">${isDone?'✓':''}</div>`:'';
+
+    html+=`<div class="${cls}" data-id="${b.id}">
+      <div class="task-row" onclick="${b.prayer?'':'toggle(\''+b.id+'\')'}">
+        <div class="task-time">${b.time}</div>
+        <div class="task-icon">${b.icon}</div>
+        <div class="task-body">
+          <div class="task-title">${b.title}</div>
+          ${b.sub?`<div class="task-sub">${b.sub}</div>`:''}
+          ${tagsHtml?`<div class="task-tags">${tagsHtml}</div>`:''}
+        </div>
+        ${chk}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('page-bugun').innerHTML=html;
+}
+
+function tagLabel(cls){return{'ttag-g':'Rutin','ttag-b':'Öğrenme','ttag-o':'Beslenme','ttag-r':'Antrenman'}[cls]||'';}
+
+function toggle(id){
+  if(!checked[todayKey]) checked[todayKey]={};
+  checked[todayKey][id]=!checked[todayKey][id];
+  sv('ar3_chk',checked);
+
+  const card=document.querySelector(`[data-id="${id}"]`);
+  const chk=document.getElementById('chk-'+id);
+  if(checked[todayKey][id]){
+    card?.classList.add('done'); card?.classList.remove('current');
+    if(chk){chk.textContent='✓';chk.classList.add('popping');setTimeout(()=>chk.classList.remove('popping'),300);}
+  } else {
+    card?.classList.remove('done');
+    if(chk) chk.textContent='';
+  }
+
+  const dow=new Date().getDay();
+  const tasks=buildBlocks(dow).filter(b=>!b.prayer);
+  const done=tasks.filter(b=>checked[todayKey][b.id]).length;
+  const pct=tasks.length?Math.round(done/tasks.length*100):0;
+  const fill=document.querySelector('.prog-fill');
+  const pctEl=document.querySelector('.prog-pct');
+  const metaEl=document.querySelector('.prog-meta span');
+  if(fill) fill.style.width=pct+'%';
+  if(pctEl) pctEl.textContent=pct+'%';
+  if(metaEl) metaEl.textContent=done+' / '+tasks.length+' görev tamamlandı';
+
+  if(done===tasks.length&&tasks.length>0){markComplete();showToast('🔥 Günü tamamladın!');}
+  else showToast(checked[todayKey][id]?'✅ Tamamlandı':'↩️ Geri alındı');
+}
+
+function markComplete(){
+  weekDone[todayKey]=true;sv('ar3_wk',weekDone);
+  const today=dk(new Date()),yest=dk(new Date(Date.now()-86400000));
+  if(streak.last===yest) streak.cur++;
+  else if(streak.last!==today) streak.cur=1;
+  streak.last=today;
+  if(streak.cur>streak.best) streak.best=streak.cur;
+  sv('ar3_str',streak);
+  document.getElementById('streakNum').textContent=streak.cur+' gün';
+}
+
+function renderStats(){
+  const today=new Date(),todayDow=today.getDay();
+  const off=todayDow===0?6:todayDow-1;
+  let wHtml='';
+  for(let i=0;i<7;i++){
+    const d=new Date(today);d.setDate(today.getDate()-off+i);
+    const key=dk(d),isT=key===dk(today),done=weekDone[key];
+    wHtml+=`<div class="wd"><div class="wd-l">${DAYS_S[d.getDay()]}</div><div class="wd-b ${done?'done':(isT?'today':'')}">${done?'✓':(isT?'·':'')}</div></div>`;
+  }
+  let wc=0;for(let i=0;i<7;i++){const d=new Date(today);d.setDate(today.getDate()-i);if(weekDone[dk(d)])wc++;}
+
+  let prayHtml='';
+  if(prayers){
+    const list=[{n:'Sabah Namazı',t:prayers.fajr},{n:'Öğle Namazı',t:prayers.dhuhr},{n:'İkindi Namazı',t:prayers.asr},{n:'Akşam Namazı',t:prayers.maghrib},{n:'Yatsı Namazı',t:prayers.isha}];
+    const nowM=nowMins();
+    prayHtml=list.map(p=>{
+      const past=toMins(p.t)<nowM;
+      return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="color:${past?'var(--sub)':'var(--text)'}">${p.n}</span>
+        <span style="font-weight:700;color:${past?'var(--sub)':'#f0c040'}">${p.t}</span>
+      </div>`;
+    }).join('');
+  } else {
+    prayHtml='<div style="font-size:13px;color:var(--sub);padding:8px 0">Yükleniyor…</div>';
+  }
+
+  document.getElementById('page-stats').innerHTML=`
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" style="color:#3ecf6e">${streak.cur}</div><div class="stat-lbl">Mevcut Streak 🔥</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#4f8ef7">${streak.best}</div><div class="stat-lbl">En Uzun Streak</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#f7b36e">${wc}</div><div class="stat-lbl">Bu Hafta (7'den)</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#f76e6e">${Object.keys(weekDone).length}</div><div class="stat-lbl">Toplam Gün</div></div>
+  </div>
+  <div class="week-card">
+    <div class="week-head">Bu Hafta</div>
+    <div class="week-grid">${wHtml}</div>
+  </div>
+  <div class="pray-stat-card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:#f0c040">🕌 Namaz Vakitleri — Ahal</div>
+    ${prayHtml}
+  </div>`;
+}
+
+function renderProgram(){
+  document.getElementById('page-program').innerHTML=`
+  <div class="prog-section">
+    <div class="prog-sec-h">💪 Antrenman — Pzt / Çar / Cum</div>
+    <div class="prog-item"><div class="prog-item-h">Full Body</div><div class="prog-item-b">Goblet Squat · Push-up · DB Row · Shoulder Press · RDL · Pull-up · Curl · Plank · 90 dk</div></div>
+  </div>
+  <div class="prog-section">
+    <div class="prog-sec-h">🇬🇧 İngilizce — Her Gün 1 Saat</div>
+    <div class="prog-item"><div class="prog-item-h">Anki · 20 dk</div><div class="prog-item-b">O gün çıkan kelimeleri tekrar et. Kural: cümle içinde öğren.</div></div>
+    <div class="prog-item"><div class="prog-item-h">Shadowing · 20 dk</div><div class="prog-item-b">BBC 6 Minute English → 1 cümle dinle → dur → aynı tonlamayla tekrar et.</div></div>
+    <div class="prog-item"><div class="prog-item-h">Claude · 20 dk</div><div class="prog-item-b">"Ben A2 seviyesindeyim, bugün [konu] hakkında 5 cümle yazdım, düzelt ve açıkla"</div></div>
+  </div>
+  <div class="prog-section">
+    <div class="prog-sec-h">🤖 AI / Python — Her Gün 1 Saat</div>
+    <div class="prog-item"><div class="prog-item-h">Ay 1 — Python Temeli</div><div class="prog-item-b">Değişken · döngü · fonksiyon · Google Colab</div></div>
+    <div class="prog-item"><div class="prog-item-h">Ay 2 — AI Araçları</div><div class="prog-item-b">Claude · ChatGPT · Midjourney · Runway</div></div>
+    <div class="prog-item"><div class="prog-item-h">Ay 3 — Prompt Mühendisliği</div><div class="prog-item-b">Claude API'ye ilk kodlu istek</div></div>
+  </div>
+  <div class="prog-section">
+    <div class="prog-sec-h">🧴 Cilt Bakım</div>
+    <div class="prog-item"><div class="prog-item-h">Sabah</div><div class="prog-item-b">Yüz yıka → Niacinamide serum → Nemlendirici → SPF50</div></div>
+    <div class="prog-item"><div class="prog-item-h">Akşam</div><div class="prog-item-b">Yüz yıka → Azelaic asit → Nemlendirici</div></div>
+  </div>
+  <div class="prog-section">
+    <div class="prog-sec-h">🍽️ Beslenme · 2900 kcal</div>
+    <div class="prog-item"><div class="prog-item-h">07:10 Mini öğün (ant. günleri)</div><div class="prog-item-b">Muz + süt 200ml → 200 kcal</div></div>
+    <div class="prog-item"><div class="prog-item-h">09:15 Kahvaltı</div><div class="prog-item-b">Yulaf · 3 yumurta · bal → 700 kcal</div></div>
+    <div class="prog-item"><div class="prog-item-h">12:30 Öğle</div><div class="prog-item-b">Pilav 160g · et/tavuk · sebze · yoğurt → 700 kcal</div></div>
+    <div class="prog-item"><div class="prog-item-h">15:30 Ara öğün</div><div class="prog-item-b">Ekmek · peynir · yumurta · badem · meyve → 550 kcal</div></div>
+    <div class="prog-item"><div class="prog-item-h">18:30 Akşam</div><div class="prog-item-b">Et/tavuk/balık · pilav · yoğurt → 600 kcal</div></div>
+    <div class="prog-item"><div class="prog-item-h">21:30 Gece</div><div class="prog-item-b">Lor peyniri 100g + süt 200ml → 150 kcal</div></div>
+  </div>`;
+}
+
+// Tab switch
+let activeTabBtns=[];
+function switchTab(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn, .bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='stats') renderStats();
+  if(name==='program') renderProgram();
+}
+
+// Toast
+let tt=null;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tt)clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+// Clock update in prog card
+function updateClock(){
+  const m=document.querySelector('.prog-meta');
+  if(m){const sp=m.querySelectorAll('span');if(sp[1]){const n=new Date();sp[1].textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}}
+}
+
+// Init
+renderHeader();
+renderBugun(); // önce namazsız göster
+fetchPrayers(); // API gelince tekrar render eder
+setInterval(()=>{renderBugun();renderHeader();},60000);
+setInterval(updateClock,15000);
+</script>
+</body>
+</html>
