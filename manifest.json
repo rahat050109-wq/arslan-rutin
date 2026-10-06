@@ -1,0 +1,24 @@
+{
+  "name": "Arslan — Günlük Rutin",
+  "short_name": "Arslan",
+  "description": "Günlük rutin takip sistemi",
+  "start_url": "/arslan-rutin/index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#3ecf6e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
